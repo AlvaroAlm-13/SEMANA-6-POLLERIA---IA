@@ -10,54 +10,41 @@
         background: linear-gradient(135deg, #fffaf0 0%, #fff1d8 100%);
         font-family: Arial, sans-serif;
       }
-
       .brand-bar {
         background: #a31919;
         color: white;
       }
-
       .hero {
         background: #fff;
         border-radius: 22px;
         box-shadow: 0 16px 30px rgba(120, 41, 11, 0.08);
       }
-
       .menu-card {
         border: 1px solid #f1d1b5;
         border-radius: 18px;
         background: #fffdf9;
-        transition: transform 0.2s ease;
       }
-
-      .menu-card:hover {
-        transform: translateY(-3px);
-      }
-
       .price {
         font-weight: 700;
         color: #a31919;
       }
-
       .chat-card {
         border: 0;
         border-radius: 22px;
         overflow: hidden;
         box-shadow: 0 20px 35px rgba(100, 30, 19, 0.14);
       }
-
       .chat-header {
         background: #b91c1c;
         color: white;
         padding: 18px 20px;
       }
-
       .chat-body {
         background: #f9f9f9;
         height: 430px;
         overflow-y: auto;
         padding: 18px;
       }
-
       .message {
         max-width: 80%;
         border-radius: 12px;
@@ -65,20 +52,17 @@
         margin-bottom: 12px;
         line-height: 1.4;
       }
-
       .message.user {
         margin-left: auto;
         background: #fee2e2;
         color: #7f1d1d;
       }
-
       .message.bot {
         margin-right: auto;
         background: #ffffff;
         border: 1px solid #f0d6b0;
         color: #222;
       }
-
       .quick-actions button {
         background: #fef3c7;
         color: #7c2d12;
@@ -88,12 +72,10 @@
         margin: 0 8px 8px 0;
         font-size: 0.9rem;
       }
-
       .send-btn {
         background: #a31919;
         border: none;
       }
-
       .send-btn:hover {
         background: #7f1111;
       }
@@ -147,7 +129,6 @@
                     </div>
                   </div>
                 </div>
-
                 <div class="col-12">
                   <div class="menu-card p-3">
                     <div class="d-flex justify-content-between align-items-center">
@@ -159,7 +140,6 @@
                     </div>
                   </div>
                 </div>
-
                 <div class="col-12">
                   <div class="menu-card p-3">
                     <div class="d-flex justify-content-between align-items-center">
@@ -174,7 +154,6 @@
               </div>
             </div>
           </div>
-
           <div class="card border-0 shadow-sm">
             <div class="card-body">
               <h2 class="h5 fw-bold mb-3">Servicio</h2>
@@ -193,14 +172,14 @@
             <div class="chat-header d-flex align-items-center justify-content-between">
               <div>
                 <div class="fw-bold">Agente de pedidos</div>
-                <small class="opacity-75">Online · Responde en segundos</small>
+                <small class="opacity-75">Online • Responde en segundos</small>
               </div>
               <span class="badge bg-light text-dark">WhatsApp</span>
             </div>
 
             <div class="chat-body" id="chatBody">
               <div class="message bot">Hola 👋, soy el agente de Pollería Chincha. Puedo ayudarte con horarios, delivery, pedidos y pagos.</div>
-              <div class="message bot">Puedes escribir cosas como: “Quiero 1 pollo entero con papas”, “¿Cuánto demora a Parcona?” o “¿a qué hora cierran?”</div>
+              <div class="message bot">Puedes escribir: “Quiero 1 pollo entero con papas”, “¿Cuánto demora a Parcona?” o “¿a qué hora cierran?”</div>
             </div>
 
             <div class="p-3 bg-white border-top">
@@ -226,46 +205,49 @@
       const messageInput = document.getElementById('messageInput');
       const quickButtons = document.querySelectorAll('.quick-btn');
 
-      const appendMessage = (sender, text) => {
+      function detectReply(text) {
+        const value = text.toLowerCase();
+
+        if (value.includes('hora') || value.includes('cierran') || value.includes('cerrar')) {
+          return 'Atendemos de 11:00 a 22:00. Si quieres, puedo tomar tu pedido ahora.';
+        }
+        if (value.includes('pollo') || value.includes('pedido') || value.includes('delivery')) {
+          return 'Perfecto. He tomado tu pedido preliminar: 1 pollo entero + papas + gaseosa. El total estimado es S/. 38.00. ¿Quieres confirmar delivery?';
+        }
+        if (value.includes('parcona') || value.includes('demora') || value.includes('entrega')) {
+          return 'La entrega a Parcona tarda alrededor de 35 minutos.';
+        }
+        if (value.includes('yape') || value.includes('pago') || value.includes('captura')) {
+          return 'Gracias por confirmar el pago. Si ya pagaste por Yape, envía la captura y te la validamos.';
+        }
+        if (value.includes('frio') || value.includes('dinero') || value.includes('reembolso')) {
+          return 'Lamentamos lo ocurrido. Voy a derivarte con un humano para revisar tu reclamo.';
+        }
+        return 'Puedo ayudarte con horarios, pedidos y delivery. Puedes escribir: “Quiero un pollo entero” o “¿Cuánto tarda a Parcona?”';
+      }
+
+      function appendMessage(sender, text) {
         const div = document.createElement('div');
         div.className = `message ${sender}`;
         div.textContent = text;
         chatBody.appendChild(div);
         chatBody.scrollTop = chatBody.scrollHeight;
-      };
+      }
 
-      const sendToAgent = async (text) => {
+      function sendMessage(text) {
         if (!text.trim()) return;
-
         appendMessage('user', text);
         messageInput.value = '';
-
-        try {
-          const response = await fetch('/api/simulate', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              messages: [{ id: crypto.randomUUID(), phone: '+51987654321', text }]
-            })
-          });
-
-          const data = await response.json();
-          const botText = data.results?.[0]?.response?.reply || 'Gracias por escribir. Te ayudamos enseguida.';
-          appendMessage('bot', botText);
-        } catch (error) {
-          appendMessage('bot', 'Hubo un problema técnico. Inténtalo de nuevo en unos segundos.');
-        }
-      };
+        appendMessage('bot', detectReply(text));
+      }
 
       chatForm.addEventListener('submit', (event) => {
         event.preventDefault();
-        sendToAgent(messageInput.value);
+        sendMessage(messageInput.value);
       });
 
       quickButtons.forEach((button) => {
-        button.addEventListener('click', () => {
-          sendToAgent(button.textContent.trim());
-        });
+        button.addEventListener('click', () => sendMessage(button.textContent.trim()));
       });
     </script>
   </body>
